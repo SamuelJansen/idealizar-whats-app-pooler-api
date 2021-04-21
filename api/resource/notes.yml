@@ -1,0 +1,2 @@
+python -m pip install 'python-language-server[all]'
+python -m pip install git+https://github.com/tomv564/pyls-mypy.git
