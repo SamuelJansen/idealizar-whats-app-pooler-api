@@ -1,2 +1,2 @@
-# idealizar-whats-app-pooler-api
-A pooler
+# idealizar-whats-app-web-api
+A whats app web api
