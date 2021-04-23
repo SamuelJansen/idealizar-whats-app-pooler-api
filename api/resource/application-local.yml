@@ -12,5 +12,10 @@ api:
         settings:
             check_same_thread: False
 
+whats-app:
+    web:
+        authentication:
+            screenshot-renew-time: 5
+
 swagger:
     host: ${api.server.host}:${api.server.port}

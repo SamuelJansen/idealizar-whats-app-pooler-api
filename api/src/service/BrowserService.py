@@ -1,15 +1,58 @@
-from domain import BrowserConstants 
+from python_helper import ObjectHelper, log
+from python_framework import Service, ServiceMethod
 
+from io import BytesIO
+import win32clipboard
+from PIL import Image
+
+from domain import BrowserConstants
 
 @Service()
 class BrowserService:
 
     browser = None
-    booting = BrowserConstants.DEFAULT_BROWSER_BOOTING_VALUE
-    available = BrowserConstants.DEFAULT_AVAILABLE_STATUS
+    booting = BrowserConstants.DEFAULT_BROWSER_BOTTING_VALUE
+    booted = BrowserConstants.DEFAULT_BOOTED_VALUE
 
-    @ServiceMethod(requestClass=[str, DEFAULT_BOWSER_CLASS])
-    def pasteToBrowser(self, screenshotName, browser, element=None):
+    @ServiceMethod()
+    def isBooting(self) :
+        return self.booting
+
+    @ServiceMethod()
+    def isBooted() :
+        return self.booted
+
+    @ServiceMethod()
+    def isAvailable(self) :
+        return ObjectHelper.isNotNone(self.browser) and not self.isBooting()
+
+    @ServiceMethod()
+    def openIfNedded(self, hidden=False) :
+        log.log(self.openIfNedded, 'Started')
+        if ObjectHelper.isNone(self.browser) and self.isNotBooting() :
+            self.open(hidden=hidden)
+        log.log(self.openIfNedded, 'Finished')
+
+    @ServiceMethod()
+    def open(self, hidden=False) :
+        log.log(self.open, 'Started')
+        self.booting = True
+        self.safelyClose()
+        self.browser = self.client.browser.getNewBrowser(hidden=hidden)
+        self.client.browser.maximize(self.browser)
+        sessionId = self.browser.session_id
+        commandExecutor = self.browser.command_executor._url
+        self.service.session.create(sessionId, commandExecutor)
+        self.booted = True
+        self.booting = False
+        log.log(self.open, 'Finished')
+
+    @ServiceMethod()
+    def accessUrl(self, url) :
+        self.client.browser.accessUrl(url, self.browser)
+
+    @ServiceMethod(requestClass=[str])
+    def pasteToBrowser(self, screenshotName, element=None):
         image = Image.open(screenshotName)
         output = BytesIO()
         image.convert('RGB').save(output, 'BMP')
@@ -19,47 +62,42 @@ class BrowserService:
         win32clipboard.EmptyClipboard()
         win32clipboard.SetClipboardData(win32clipboard.CF_DIB, data)
         win32clipboard.CloseClipboard()
-        self.client.browser.hitControlV(browser, element=element)
+        self.client.browser.hitControlV(self.browser, element=element)
         # KeyboardUtil.ctrlV()
 
+    @ServiceMethod(requestClass=[str])
+    def screenshot(self, screenshotName) :
+        return self.client.browser.screenshot(screenshotName, self.browser)
+
+    @ServiceMethod()
+    def inMemoryScreenshot(self) :
+        return self.client.browser.inMemoryScreenshot(self.browser)
+
+    @ServiceMethod()
+    def tearDown(self) :
+        log.log(self.tearDown, 'Started')
+        self.safelyClose()
+        log.log(self.tearDown, 'Finished')
 
     @ServiceMethod(requestClass=[str])
-    def openBrowserIfNedded(self, url) :
-        if not self.browserIsBooted() and not self.browserIsBooting() :
-            self.booting = True
-            # mostRecentSession = self.service.session.findMostRecent()
-            # if ObjectHelper.isNone(mostRecentSession) :
-            #     self.browser = self.client.browser.getNewBrowser()
-            #     self.service.session.create(
-            #         Session.Session(
-            #             sessionId = self.browser.session_id,
-            #             commandExecutor = self.browser.command_executor._url
-            #         )
-            #     )
-            # else :
-            #     self.browser = self.client.browser.retrieveBrowserSession(mostRecentSession.sessionId, mostRecentSession.commandExecutor)
-            self.browser = self.client.browser.getNewBrowser()
-            self.service.session.create(
-                Session.Session(
-                    sessionId = self.browser.session_id,
-                    commandExecutor = self.browser.command_executor._url
-                )
-            )
-            self.client.browser.accessUrl(url, self.browser)
-            time.sleep(AUTHENTICATION_TIME_OUT)
-            self.client.browser.screeshotWebPage('QRCode.png', url, self.browser)
-            time.sleep(AUTHENTICATION_TIME_OUT)
-            self.booting = False
-            self.available = True
+    def existsByXpath(self, xpath) :
+        return self.client.browser.existsByXpath(xpath, self.browser)
+
+    def safelyClose(self) :
+        log.log(self.safelyClose, 'Started')
+        if ObjectHelper.isNotNone(self.browser) :
+            try :
+                self.client.browser.close(self.browser)
+            except Exception as exception :
+                log.log(self.safelyClose, 'Not possible co close browser', exception=exception)
+        self.browser = None
+        self.booted = False
+        log.log(self.safelyClose, 'Finished')
 
     @ServiceMethod()
-    def browserIsBooted(self) :
-        return ObjectHelper.isNotNone(self.browser)
+    def isNotBooting(self) :
+        return not self.isBooting()
 
     @ServiceMethod()
-    def browserIsBooting(self) :
-        return self.booting
-
-    @ServiceMethod()
-    def browserIsAvailable(self) :
-        return self.browserIsBooted() and self.available
+    def isNotBooted() :
+        return not self.isBooted()

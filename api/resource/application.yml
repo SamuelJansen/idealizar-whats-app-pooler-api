@@ -1,6 +1,6 @@
 print-status: False
 api:
-    name: IdealizarWhatsPoolerApi
+    name: IdealizarWhatsAppWebApi
     extension: yml
     dependency:
         update: False
@@ -17,18 +17,21 @@ api:
         secret: default
     server:
         scheme: https
-        host: 127.0.0.1
-        port: 5050
-        base-url: /idealizar-whats-app-pooler-api
-    # database:
-        # dialect: ${DATABASE_DIALECT:}
-        # driver: ${DATABASE_DRIVER:}
-        # database: ${DATABASE_NAME:}
-        # username: ${DATABASE_USERNAME:}
-        # password: ${DATABASE_PASSWORD:}
-        # host: ${DATABASE_HOST:}
-        # port: ${DATABASE_PORT:}
-        # schema: ${DATABASE_SCHEMA:}
+        host: 0.0.0.0
+        port: 5100
+        base-url: /idealizar-whats-app-web-api
+
+whats-app:
+    web:
+        base-url: "https://web.whatsapp.com/"
+        authentication:
+            time-out: ${WHATS_APP_WEB_AUTHENTICATION_TIME_OUT:180}
+            pre-delay: 1
+            screenshot-time-renew: 15
+        browser:
+            hidden: True
+    manager:
+        base-url: 'http://192.168.25.3:5500/idealizar-whats-app-manager-api'
 
 swagger:
     host: ${api.server.host}:${api.server.port}${api.server.base-url}

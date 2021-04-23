@@ -1,10 +1,10 @@
 from python_helper import ObjectHelper
 from python_framework import SqlAlchemyProxy as sap
 from python_framework import Repository
-import Message
+import Session
 
-@Repository(model = Message.Message)
-class MessageRepository:
+@Repository(model = Session.Session)
+class SessionRepository:
 
     def findAll(self) :
         return self.repository.findAllAndCommit(self.model)
@@ -40,7 +40,7 @@ class MessageRepository:
         self.repository.session.commit()
         return modelList
 
-    def existsByMessageId(self, messageId) :
-        objectExists = self.repository.session.query(sap.exists().where(self.model.messageId == messageId)).one()[0]
+    def findMostRecentUpdatedAt(self) :
+        model = self.repository.session.query(self.model).order_by(self.model.updatedAt.desc()).first()
         self.repository.session.commit()
-        return objectExists
+        return model

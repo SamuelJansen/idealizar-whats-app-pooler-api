@@ -1,6 +1,6 @@
 import datetime
 from python_helper import Constant as c
-from python_helper import ObjectHelper, StringHelper, RandomHelper
+from python_helper import ObjectHelper, StringHelper, RandomHelper, log
 
 DEFAULT_DATETIME_PATTERN = '%Y-%m-%d %H:%M:%S'
 DEFAULT_DATE_PATTERN = '%Y-%m-%d'
@@ -59,7 +59,7 @@ def forcedlyParse(given, pattern=DEFAULT_DATETIME_PATTERN, timedelta=False) :
         try :
             parsed = parseToPattern(given, pattern=pattern, timedelta=timedelta)
         except Exception as exception :
-            pass
+            log.log(forcedlyParse, 'Not possible to parse given date time', exception=exception)
     return parsed
 
 def parseToDateTime(givenDatetime, pattern=DEFAULT_DATETIME_PATTERN) :

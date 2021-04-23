@@ -1,4 +1,4 @@
-import ContactStaticConverter
+from converter.static import ContactStaticConverter, MessageStaticConverter
 
 class ScanRequestDto :
     def __init__(self,

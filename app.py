@@ -7,16 +7,16 @@ globalsInstance = globals.newGlobalsInstance(__file__
     , failureStatus = True
 
     , warningStatus = True
-    , wrapperStatus = True
-    , logStatus = True
+    # , wrapperStatus = True
+    # , logStatus = True
     # , testStatus = True
 )
 
 from python_framework import initialize
-import IdealizarWhatsAppPoolerApi
-app = IdealizarWhatsAppPoolerApi.app
-api = IdealizarWhatsAppPoolerApi.api
-jwt = IdealizarWhatsAppPoolerApi.jwt
+import IdealizarWhatsAppWebApi
+app = IdealizarWhatsAppWebApi.app
+api = IdealizarWhatsAppWebApi.api
+jwt = IdealizarWhatsAppWebApi.jwt
 
 @initialize(api, defaultUrl = '/swagger', openInBrowser=False)
 def runFlaskApplication(app):
