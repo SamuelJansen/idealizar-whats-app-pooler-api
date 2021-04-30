@@ -2,7 +2,6 @@ from python_helper import Constant as c
 from python_helper import ObjectHelper, log, StringHelper
 from python_framework import Client, ClientMethod
 
-import base64
 import json
 import requests
 
