@@ -1,3 +1,5 @@
-python-framework<=0.3.0.post04
+python-framework<=0.1.10.post21
 beautifulsoup4==4.9.3
 selenium==3.141.0
+keyboard==0.13.5
+PyAutoGUI==0.9.50
