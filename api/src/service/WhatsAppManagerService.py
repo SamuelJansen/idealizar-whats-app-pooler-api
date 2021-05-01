@@ -1,3 +1,4 @@
+from python_helper import log
 from python_framework import Service, ServiceMethod
 
 from dto import QRCodeDto
@@ -10,7 +11,7 @@ class WhatsAppManagerService :
         try :
             self.client.whatsAppManager.startAuthentication()
         except Exception as exception :
-            log.log(self.authenticate, 'Not possible to inform authentication started to Whats App Manager', exception=exception)
+            log.log(self.startAuthentication, 'Not possible to inform authentication started to Whats App Manager', exception=exception)
 
     @ServiceMethod(requestClass=[QRCodeDto.QRCodeRequestDto])
     def updateQRCode(self, dto) :
@@ -20,5 +21,5 @@ class WhatsAppManagerService :
     def resumeAuthentication(self) :
         try :
             self.client.whatsAppManager.resumeAuthentication()
-        except Exception as innerException :
-            log.log(self.authenticate, 'Not possible to inform authentication resumed to Whats App Manager', exception=exception)
+        except Exception as exeption :
+            log.log(self.resumeAuthentication, 'Not possible to inform authentication resumed to Whats App Manager', exception=exception)

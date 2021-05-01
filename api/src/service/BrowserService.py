@@ -89,7 +89,7 @@ class BrowserService:
             try :
                 self.client.browser.close(self.browser)
             except Exception as exception :
-                log.log(self.safelyClose, 'Not possible co close browser', exception=exception)
+                log.log(self.safelyClose, 'Not possible to close browser', exception=exception)
         self.browser = None
         self.booted = False
         log.log(self.safelyClose, 'Finished')

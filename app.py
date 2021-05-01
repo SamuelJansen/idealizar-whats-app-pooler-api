@@ -5,10 +5,10 @@ globalsInstance = globals.newGlobalsInstance(__file__
     , errorStatus = True
     , debugStatus = True
     , failureStatus = True
-
+    #
     , warningStatus = True
     # , wrapperStatus = True
-    # , logStatus = True
+    , logStatus = True
     # , testStatus = True
 )
 
