@@ -21,5 +21,5 @@ class WhatsAppManagerService :
     def resumeAuthentication(self) :
         try :
             self.client.whatsAppManager.resumeAuthentication()
-        except Exception as exeption :
+        except Exception as exception :
             log.log(self.resumeAuthentication, 'Not possible to inform authentication resumed to Whats App Manager', exception=exception)

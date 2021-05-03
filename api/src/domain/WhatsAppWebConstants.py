@@ -7,7 +7,9 @@ globalsInstance = getGlobalsInstance()
 
 XPATH_AUTHENTICATED_USER = '//span[@data-testid="default-user"]'
 XPATH_GROUP_MESSAGE_SECTION = '//div//div//div[@aria-label="Message list. Press right arrow key on a message to open message context menu."]'
-XPATH_GROUP_MESSAGE_LIST = '//div[contains(@class,"focusable-list-item")]'
+XPATH_MESSAGE_LIST = '//div[contains(@class,"focusable-list-item")]'
+XPATH_MESSAGE_IN_LIST = '//div[contains(@class,"message-in focusable-list-item")]'
+XPATH_MESSAGE_OUT_LIST = '//div[contains(@class,"message-out focusable-list-item")]'
 XPATH_TEXT_BOX = '//div//div//div[@contenteditable="true"]'
 XPATH_SEND_IMAGE = '//div//div//span[@data-icon="send"]'
 XPATH_GROUP = f'//div//div//span[@title="{ContactConstants.TOKEN_CONTACT_KEY}"]'
@@ -23,10 +25,13 @@ ATTR_IS_POOLER_MESSAGE = 'class'
 HIDDEN_BROWSER = globalsInstance.getApiSetting('whats-app.web.browser.hidden')
 
 DEFAULT_AVAILABLE_STATUS = True
+DEFAULT_AUTHENTICATING_STATUS = False
 DEFAULT_AUTHENTICATED_VALUE = False
 
 STATIC_PATH_NAME = 'static'
 STATIC_PACKAGE_PATH = f'{globalsInstance.baseApiPath}{STATIC_PATH_NAME}'
+
+# DEFAULT_AMMOUNT_OF_MESSAGE_SCROLL_UP = 15
 
 AUTHENTICATION_TEMPLATE_PACKAGE = f'authentication'
 QR_CODE_IMAGE_NAME = f'{STATIC_PACKAGE_PATH}{EnvironmentHelper.OS_SEPARATOR}{AUTHENTICATION_TEMPLATE_PACKAGE}{EnvironmentHelper.OS_SEPARATOR}qr-code.png'

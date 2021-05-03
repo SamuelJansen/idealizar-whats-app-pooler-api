@@ -1,4 +1,5 @@
 import keyboard, pyautogui
+pyautogui.FAILSAFE = True
 
 KEYBOARD_KEY_LIST = {
     "a",
@@ -107,3 +108,13 @@ def ctrlV() :
 
 def esc() :
     pyautogui.press('esc')
+
+def zoomOut(ammount) :
+    pyautogui.keyDown('ctrl')
+    for _ in range(ammount) :
+        pyautogui.press('-')
+    pyautogui.keyUp('ctrl')
+
+def arrowUp(ammount) :
+    for _ in range(ammount) :
+        pyautogui.press('up')

@@ -1,5 +1,6 @@
 from python_helper import ObjectHelper, StringHelper
 from python_framework import SqlAlchemyProxy as sap
+from python_framework import StaticConverter
 from ModelAssociation import SESSION, MODEL
 
 import DateTimeUtil
@@ -10,9 +11,6 @@ LARGE_STRING_SIZE = 1024
 STRING_SIZE = 512
 MEDIUM_STRING_SIZE = 128
 LITTLE_STRING_SIZE = 64
-
-def getGivenOrDefault(given, default) :
-    return default if ObjectHelper.isNone(given) else given
 
 class Session(MODEL):
     __tablename__ = SESSION
@@ -29,7 +27,7 @@ class Session(MODEL):
         commandExecutor = None
     ):
         self.id = id
-        self.updatedAt = getGivenOrDefault(DateTimeUtil.forcedlyGetDateTime(updatedAt), DateTimeUtil.dateTimeNow())
+        self.updatedAt = StaticConverter.getValueOrDefault(DateTimeUtil.forcedlyGetDateTime(updatedAt), DateTimeUtil.dateTimeNow())
         self.sessionId = sessionId
         self.commandExecutor = commandExecutor
 

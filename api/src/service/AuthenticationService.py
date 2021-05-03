@@ -29,7 +29,7 @@ class AuthenticationService:
 
     @ServiceMethod()
     def authenticate(self) :
-        self.validator.whatsAppWeb.isAvailableForAuthentication()
+        self.validator.authentication.isAvailableForAuthentication()
         log.debug(self.authenticateIfNeeded, 'Authenticating')
         responseDto = None
         try :

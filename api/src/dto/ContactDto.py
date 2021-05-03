@@ -1,15 +1,17 @@
-from ContactType import ContactType
-from ContactStatus import ContactStatus
+from enumeration.ContactType import ContactType
+from enumeration.ContactStatus import ContactStatus
+
+from converter.static import ContactStaticConverter
 
 class ContactRequestDto :
     def __init__(self,
         key = None,
         type = None,
-        name = None
+        accessTime = None
     ) :
         self.key = key
         self.type = ContactType.map(type)
-        self.name = name
+        self.accessTime = ContactStaticConverter.getAccessTime(accessTime)
 
 class ContactResponseDto :
     def __init__(self,
@@ -19,7 +21,7 @@ class ContactResponseDto :
         status = None,
         name = None
     ) :
-        self.id = id,
+        self.id = id
         self.key = key
         self.type = ContactType.map(type)
         self.status = ContactStatus.map(status)

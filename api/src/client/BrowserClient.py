@@ -9,7 +9,7 @@ from selenium.webdriver import ActionChains
 
 from bs4 import BeautifulSoup
 
-import KeyboardUtil
+from util import MouseUtil, KeyboardUtil
 
 from domain import BrowserConstants
 
@@ -44,6 +44,7 @@ class BrowserClient:
         browser.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
         self.maximize(browser)
         browser.hidden = hidden
+        browser.zoom = 100.0
         log.debug(self.getNewBrowser, f'session_id: {browser.session_id}')
         log.debug(self.getNewBrowser, f'command_executor: {browser.command_executor._url}')
         return browser
@@ -123,7 +124,9 @@ class BrowserClient:
         browser.refresh()
 
     @SimpleClientMethod(requestClass=[str, BrowserConstants.BOWSER_CLASS]) ###- !!!
-    def getAttribute(self, attributeName, element) :
+    def getAttribute(self, attributeName, browser, element=None) :
+        if ObjectHelper.isNone(element) :
+            return browser.get_attribute(attributeName)
         return element.get_attribute(attributeName)
 
     @SimpleClientMethod(requestClass=[str, BrowserConstants.BOWSER_CLASS])
@@ -141,7 +144,6 @@ class BrowserClient:
             log.log(self.existsByXpath, 'Not possible to evaluate existance', exception=exception)
         return exists
 
-
     @SimpleClientMethod(requestClass=[str, BrowserConstants.BOWSER_CLASS])
     def findAllByXPath(self, xPath, browser) :
         elementList = browser.find_elements_by_xpath(xPath)
@@ -151,10 +153,24 @@ class BrowserClient:
     @SimpleClientMethod(requestClass=[str, BrowserConstants.BOWSER_CLASS])
     def accessByXPath(self, xPath, browser) :
         element = self.findByXPath(xPath, browser)
-        self.access(element)
+        self.access(browser, element=element)
 
     @SimpleClientMethod(requestClass=[BrowserConstants.BOWSER_CLASS])
-    def access(self, element) :
+    def access(self, browser, element=None) :
+        # location = element.location
+        # # print(location)
+        # correctLocation = [
+        #     int((location['x'] * browser.zoom + 1) // 1),
+        #     int((location['y'] * browser.zoom + 1) // 1)
+        # ]
+        # # print(correctLocation)
+        # offset = [
+        #     correctLocation[0] - location['x'],
+        #     correctLocation[1] - location['y']
+        # ]
+        # action = webdriver.common.action_chains.ActionChains(browser)
+        # action.move_to_element_with_offset(element, offset[0], offset[1])
+        # webdriver.common.action_chains.ActionChains(browser).move_to_element_with_offset(element, 1, 1).click().perform()
         element.click()
         time.sleep(BrowserConstants.DEFAULT_WEBDRIVER_DELAY)
         return element
@@ -203,7 +219,12 @@ class BrowserClient:
 
     @SimpleClientMethod(requestClass=[BrowserConstants.BOWSER_CLASS])
     def maximize(self, browser) :
+        browser.minimize_window()
         browser.maximize_window()
+        # browser.switch_to.window(browser.current_window_handle)
+        # required_width = browser.execute_script('return document.body.parentNode.scrollWidth')
+        # required_height = browser.execute_script('return document.body.parentNode.scrollHeight')
+        # browser.set_window_size(required_width, required_height)
 
     @SimpleClientMethod(requestClass=[BrowserConstants.BOWSER_CLASS])
     def close(self, browser) :
@@ -240,6 +261,11 @@ class BrowserClient:
             browser.set_window_size(original_size['width'], original_size['height'])
         time.sleep(BrowserConstants.DEFAULT_WEBDRIVER_DELAY_FRACTION)
         return screenshotAsBase64
+
+    @SimpleClientMethod(requestClass=[BrowserConstants.BOWSER_CLASS])
+    def scrollInto(self, browser, element=None) :
+        browser.execute_script("return arguments[0].scrollIntoView(true);", element)
+        time.sleep(BrowserConstants.DEFAULT_WEBDRIVER_DELAY)
 
     @SimpleClientMethod(requestClass=[str, str])
     def retrieveBrowserSession(self, session_id, executor_url):
@@ -279,3 +305,40 @@ class BrowserClient:
         RemoteWebDriver.execute = org_command_execute
 
         return new_browser
+
+    # @SimpleClientMethod(requestClass=[int, BrowserConstants.BOWSER_CLASS])
+    # def setZoom(self, zoomPercentage, browser) :
+    #     # zoom = zoomPercentage/100
+    #     # browser.execute_script(f"document.body.style.zoom='{zoomPercentage}%'")
+    #     # browser.zoom = float(zoom)
+    #     # ...
+    #     # # from python_helper import ReflectionHelper
+    #     # # log.prettyPython(self.setZoom, f'browser', ReflectionHelper.getItNaked(browser), logLevel=log.DEBUG)
+    #     # # browser.get('chrome://settings/')
+    #     # # browser.execute_script(f'chrome.settingsPrivate.setDefaultZoom({zoomPercentage/100});')
+    #     # # browser.get('https://web.whatsapp.com/')
+    #     # # browser.execute_script(f"document.body.style.transform = 'scale({zoomPercentage/100})'")
+    #     ...
+
+    # @SimpleClientMethod(requestClass=[BrowserConstants.BOWSER_CLASS])
+    # def setMinimumZoom(self, browser) :
+    #     # zoom = 25/100
+    #     # browser.switch_to.window(browser.current_window_handle)
+    #     # element = browser.find_element_by_tag_name('body')
+    #     # import pyautogui
+    #     # pyautogui.FAILSAFE = True
+    #     # pyautogui.keyDown('ctrl')
+    #     # MouseUtil.moveTo(element.location['x'] + element.size['width'] / 2, element.location['y'] + element.size['height'] / 2)
+    #     # for _ in range(4) :
+    #     #     time.sleep(BrowserConstants.DEFAULT_WEBDRIVER_DELAY_FRACTION)
+    #     #     MouseUtil.scrool(-1000)
+    #     # pyautogui.keyUp('ctrl')
+    #     # browser.zoom = float(zoom)
+    #     self.maximize(browser)
+    #     KeyboardUtil.zoomOut(10)
+
+    # @SimpleClientMethod(requestClass=[int, BrowserConstants.BOWSER_CLASS])
+    # def scroll(self, scrollAmmount, browser, element=None) :
+    #     browser.switch_to.window(browser.current_window_handle)
+    #     MouseUtil.scroll(scrollAmmount)
+    #     # browser.execute_script(f"scrollBy(0,{'+' if 0 < scrollAmmount else '-'}{scrollAmmount});")
