@@ -22,17 +22,16 @@ class WhatsAppWebService:
         time.sleep(contact.accessTime)
 
     @ServiceMethod(requestClass=[ContactDto.ContactRequestDto])
-    def moveUpConversation(self, contact) :
-        try :
-            self.service.browser.scrollInto(WhatsAppWebConstants.XPATH_MESSAGE_LIST)
-        except Exception as exception :
-            if 'StaleElementReferenceException' == ReflectionHelper.getName(type(exception)) :
-                return self.moveUpConversation(contact)
-            raise exception
+    def getInputTextBox(self, contact) :
+        return self.service.browser.findAllByXPath(WhatsAppWebConstants.XPATH_TEXT_BOX)[-1]
+
+    @ServiceMethod(requestClass=[ContactDto.ContactRequestDto, str])
+    def typeTextAndSend(self, contact, text, element=None) :
+        self.service.browser.typeInAndHitEnter(text, element=element)
 
     @ServiceMethod(requestClass=[ContactDto.ContactRequestDto])
-    def getRawMessageList(self, contact) :
-        return self.service.browser.findAllByXPath(WhatsAppWebConstants.XPATH_MESSAGE_IN_LIST)
+    def getMessageList(self, contact) :
+        return self.service.browser.findAllByXPath(WhatsAppWebConstants.XPATH_MESSAGE_LIST)[::-1]
 
     @ServiceMethod()
     def getMessageKey(self, message=None) :
@@ -41,6 +40,15 @@ class WhatsAppWebService:
     @ServiceMethod()
     def getHtml(self, element=None) :
         return self.service.browser.getAttribute('outerHTML', element=element)
+
+    @ServiceMethod(requestClass=[ContactDto.ContactRequestDto])
+    def moveUpConversation(self, contact) :
+        try :
+            self.service.browser.scrollInto(WhatsAppWebConstants.XPATH_MESSAGE_LIST)
+        except Exception as exception :
+            if 'StaleElementReferenceException' == ReflectionHelper.getName(type(exception)) :
+                return self.moveUpConversation(contact)
+            raise exception
 
     @ServiceMethod()
     def authenticate(self) :
@@ -52,13 +60,21 @@ class WhatsAppWebService:
             self.validator.authentication.authenticationTimeOut(authenticationBegin)
         self.setToAuthenticated()
         self.setToAvailable()
-        # self.service.browser.setMinimumZoom()
+        self.service.browser.optimizeHiddenWindowSize(maxSize=True)
         log.log(self.authenticate, 'Finished')
+
+    @ServiceMethod()
+    def access(self, element=None) :
+        self.service.browser.access(element=element)
 
     @ServiceMethod()
     def setToAvailable(self) :
         self.available = True
-        self.authenticating = False
+
+    @ServiceMethod()
+    def setToBusy(self) :
+        self.validator.whatsAppWeb.isAvailable()
+        self.available = False
 
     @ServiceMethod()
     def setToAuthenticating(self) :
@@ -86,6 +102,10 @@ class WhatsAppWebService:
         return self.service.browser.isAvailable() and self.available
 
     @ServiceMethod()
+    def isNotAvailable(self) :
+        return not self.isAvailable()
+
+    @ServiceMethod()
     def isAuthenticated(self):
         return True if self.authenticated else False ###- cannot pass a refference here
 
@@ -109,10 +129,6 @@ class WhatsAppWebService:
         self.authenticated = self.service.browser.existsByXpath(WhatsAppWebConstants.XPATH_AUTHENTICATED_USER)
 
     @ServiceMethod()
-    def isNotAvailable(self) :
-        return not self.isAvailable()
-
-    @ServiceMethod()
     def isNotAuthenticated(self) :
         return not self.isAuthenticated()
 
@@ -124,10 +140,15 @@ class WhatsAppWebService:
     def isNotAuthenticating(self) :
         return not self.isAuthenticating()
 
+    @ServiceMethod()
+    def pingBrowser(self) :
+        self.switchWhastAppToANewTab()
+
+    @ServiceMethod(requestClass=[float])
     def updateQRCode(self, authenticationBegin) :
         log.debug(self.updateQRCode, f'Accessing {WhatsAppWebConfig.BASE_URL}')
         self.service.browser.accessUrl(WhatsAppWebConfig.BASE_URL)
-        time.sleep(WhatsAppWebConfig.PRE_AUTHENTICATION_DELAY)
+        time.sleep(WhatsAppWebConfig.PRE_AUTHENTICATION_DELAY_IN_SECONDS)
         log.debug(self.updateQRCode, f'Screenshotting')
         qRCodeAsBase64 = self.service.browser.inMemoryScreenshot()
         log.debug(self.updateQRCode, f'Sending screenshot to Whats App Manager')
@@ -139,8 +160,16 @@ class WhatsAppWebService:
             self.updateIsAuthenticated()
             self.validator.authentication.authenticationTimeOut(authenticationBegin)
 
+    def switchWhastAppToANewTab(self) :
+        try :
+            self.service.browser.accessUrlInNewTab(WhatsAppWebConfig.BASE_URL)
+            self.service.browser.closeTab(-2)
+            time.sleep(WhatsAppWebConfig.TAB_ALTERNATINGT_TIME_IN_SECONDS)
+        except Exception as exception :
+            log.failure(self.switchWhastAppToANewTab, 'Not possible to switch whats app tab properly', exception)
+
     def getNextQRCodeUpdateTime(self, authenticationBegin) :
-        return time.time() + WhatsAppWebConfig.AUTHENTICATION_SCREENSHOT_RENEW
+        return time.time() + WhatsAppWebConfig.AUTHENTICATION_SCREENSHOT_RENEW_TIME_IN_SECONDS
 
     def bootIfNeeded(self):
         log.log(self.bootIfNeeded, 'Started')

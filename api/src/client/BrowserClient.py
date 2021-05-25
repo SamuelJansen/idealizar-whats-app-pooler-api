@@ -1,7 +1,9 @@
 import time
+import pyperclip
 from python_helper import Constant as c
 from python_helper import ObjectHelper, log, StringHelper
-from python_framework import SimpleClient, SimpleClientMethod
+from python_framework import SimpleClient, SimpleClientMethod, FlaskManager
+from python_framework import WebBrowser as PythonFrameworkWebBrowser
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -13,6 +15,10 @@ from util import MouseUtil, KeyboardUtil
 
 from domain import BrowserConstants
 
+USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36'
+# USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.53 Safari/537.36'
+# USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36'
+
 @SimpleClient()
 class BrowserClient:
 
@@ -20,7 +26,8 @@ class BrowserClient:
     def getBrowserOptions(self, anonymous=False, deteach=True, hidden=False) :
         chromeOptions = BrowserConstants.BROWSER_OPTIONS_CLASS()
         chromeOptions.add_argument('--ignore-certificate-errors')
-        chromeOptions.add_argument("user-agent=Chrome/83.0.4103.53")
+        # chromeOptions.add_argument("user-agent=Chrome/83.0.4103.53")
+        chromeOptions.add_argument(f'user-agent={USER_AGENT}')
         chromeOptions.add_argument('--disable-blink-features=AutomationControlled')
         chromeOptions.add_experimental_option("excludeSwitches", ["enable-automation"])
         chromeOptions.add_experimental_option('useAutomationExtension', False)
@@ -40,10 +47,16 @@ class BrowserClient:
     def getNewBrowser(self, options=None, anonymous=False, deteach=True, hidden=False) :
         options = options if ObjectHelper.isNotNone(options) else self.getBrowserOptions(anonymous=anonymous, deteach=deteach, hidden=hidden)
         browser = BrowserConstants.BOWSER_CLASS(BrowserConstants.BROWSER_MANAGER_CLASS().install(), chrome_options=options)
-        browser.execute_cdp_cmd('Network.setUserAgentOverride', {"userAgent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.53 Safari/537.36'})
+        browser.execute_cdp_cmd('Network.setUserAgentOverride', {"userAgent": f'{USER_AGENT}'})
+
         browser.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
         self.maximize(browser)
         browser.hidden = hidden
+        browser.originalWindowSize = browser.get_window_size()
+        browser.windowSize = {}
+        browser.windowSize['width'] = browser.originalWindowSize['width']
+        browser.windowSize['height'] = browser.originalWindowSize['height']
+        self.optimizeHiddenWindowSize(browser, maxSize=False)
         browser.zoom = 100.0
         log.debug(self.getNewBrowser, f'session_id: {browser.session_id}')
         log.debug(self.getNewBrowser, f'command_executor: {browser.command_executor._url}')
@@ -55,12 +68,16 @@ class BrowserClient:
 
     @SimpleClientMethod(requestClass=[str, BrowserConstants.BOWSER_CLASS])
     def accessUrl(self, url, browser) :
+        parsedUrl = PythonFrameworkWebBrowser.getParsedUrl(url, host='localhost')
         try :
-            browser.get(url)
+            browser.get(parsedUrl)
             time.sleep(BrowserConstants.DEFAULT_WEBDRIVER_DELAY)
         except :
-            browser.get(url)
-            time.sleep(BrowserConstants.DEFAULT_WEBDRIVER_LARGE_DELAY)
+            try :
+                browser.get(parsedUrl)
+                time.sleep(BrowserConstants.DEFAULT_WEBDRIVER_LARGE_DELAY)
+            except Exception as exception :
+                raise Exception(f'Not possible to access {parsedUrl}. Cause: {exception}')
         return browser
 
     @SimpleClientMethod(requestClass=[str])
@@ -76,7 +93,7 @@ class BrowserClient:
             return self.accessUrl(url, browser)
 
     @SimpleClientMethod(requestClass=[str, BrowserConstants.BOWSER_CLASS])
-    def openInNewTab(self, url, browser):
+    def accessUrlInNewTab(self, url, browser):
         if ObjectHelper.isNotNone(url) :
             self.newTab(browser)
             return self.accessUrl(url, browser)
@@ -88,23 +105,36 @@ class BrowserClient:
         browser.switch_to.window(browser.window_handles[-1])
         time.sleep(BrowserConstants.DEFAULT_WEBDRIVER_DELAY_FRACTION)
 
-    @SimpleClientMethod(requestClass=[str]) ###- WebElement
-    def typeIn(self, text, element=None) :
-        element.send_keys(Keys.CONTROL, 'a')
-        element.send_keys(text)
+    @SimpleClientMethod(requestClass=[str, BrowserConstants.BOWSER_CLASS]) ###- WebElement
+    def typeIn(self, text, browser, element=None) :
+        # def inChunks(text, n) :
+        #     for chunk in range() :
+        #         yield
+        try :
+            element.send_keys(Keys.CONTROL, 'a')
+            pyperclip.copy(text)
+            self.hitControlV(browser, element=element)
+        except Exception as exception :
+            element.send_keys(Keys.CONTROL, 'a')
+            newLine = False
+            for t in text.split(c.NEW_LINE) :
+                if newLine :
+                    element.send_keys(Keys.SHIFT, c.NEW_LINE)
+                element.send_keys(t)
+                newLine = True
 
-    @SimpleClientMethod(requestClass=[str]) ###- WebElement
-    def typeInAndHitEnter(self, text, element=None) :
-        self.typeIn(text, element=element)
+    @SimpleClientMethod(requestClass=[str, BrowserConstants.BOWSER_CLASS]) ###- WebElement
+    def typeInAndHitEnter(self, text, browser, element=None) :
+        self.typeIn(text, browser, element=element)
         element.send_keys(Keys.ENTER)
         time.sleep(BrowserConstants.DEFAULT_WEBDRIVER_DELAY_FRACTION)
 
     @SimpleClientMethod(requestClass=[BrowserConstants.BOWSER_CLASS]) ###- WebElement
     def hitControlV(self, browser, element=None) :
-        webdriver.ActionChains(browser).key_down(Keys.CONTROL, element).send_keys('v').key_up(Keys.CONTROL, element).perform()
+        webdriver.ActionChains(browser).key_down(Keys.CONTROL, element).send_keys('v').key_up(Keys.CONTROL, element).send_keys(Keys.ENTER).perform()
         time.sleep(BrowserConstants.DEFAULT_WEBDRIVER_DELAY_FRACTION)
-        KeyboardUtil.esc()
-        KeyboardUtil.esc()
+        # KeyboardUtil.esc()
+        # KeyboardUtil.esc()
         # actions.key_down(Keys.CONTROL)
         # actions.send_keys("v")
         # actions.key_up(Keys.CONTROL)
@@ -219,7 +249,7 @@ class BrowserClient:
 
     @SimpleClientMethod(requestClass=[BrowserConstants.BOWSER_CLASS])
     def maximize(self, browser) :
-        browser.minimize_window()
+        self.minimize(browser)
         browser.maximize_window()
         # browser.switch_to.window(browser.current_window_handle)
         # required_width = browser.execute_script('return document.body.parentNode.scrollWidth')
@@ -227,11 +257,27 @@ class BrowserClient:
         # browser.set_window_size(required_width, required_height)
 
     @SimpleClientMethod(requestClass=[BrowserConstants.BOWSER_CLASS])
+    def minimize(self, browser) :
+        browser.minimize_window()
+
+    @SimpleClientMethod(requestClass=[BrowserConstants.BOWSER_CLASS])
     def close(self, browser) :
         try :
             browser.close()
         except Exception as exception :
             log.error(self.close, 'Not possible to close browser properly', exception)
+
+    @SimpleClientMethod(requestClass=[str, BrowserConstants.BOWSER_CLASS])
+    def closeTab(self, tabIndex, browser) :
+        try :
+            from python_helper import ReflectionHelper
+            ReflectionHelper.getItNaked(browser.window_handles)
+            currentWindow = browser.window_handles[-1]
+            browser.switch_to.window(browser.window_handles[tabIndex])
+            self.close(browser)
+            browser.switch_to.window(currentWindow)
+        except Exception as exception :
+            log.error(self.closeTab, 'Not possible to close browser tab properly', exception)
 
     @SimpleClientMethod(requestClass=[str, BrowserConstants.BOWSER_CLASS])
     def screenshot(self, screenshotName, browser) :
@@ -261,6 +307,19 @@ class BrowserClient:
             browser.set_window_size(original_size['width'], original_size['height'])
         time.sleep(BrowserConstants.DEFAULT_WEBDRIVER_DELAY_FRACTION)
         return screenshotAsBase64
+
+    @SimpleClientMethod(requestClass=[BrowserConstants.BOWSER_CLASS])
+    def optimizeHiddenWindowSize(self, browser, maxSize=False) :
+        # if browser.hidden :
+        #     if maxSize :
+        #         browser.windowSize['width'] = browser.originalWindowSize['width']
+        #         browser.windowSize['height'] = 2 * browser.originalWindowSize['height']
+        #         browser.set_window_size(browser.windowSize['width'], browser.windowSize['height'])
+        #     else :
+        #         browser.windowSize['width'] = browser.originalWindowSize['width']
+        #         browser.windowSize['height'] = browser.originalWindowSize['height']
+        #         browser.set_window_size(browser.windowSize['width'], browser.windowSize['height'])
+        ...
 
     @SimpleClientMethod(requestClass=[BrowserConstants.BOWSER_CLASS])
     def scrollInto(self, browser, element=None) :

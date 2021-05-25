@@ -1,4 +1,4 @@
-class MessageResponseDto :
+class MessageScanResponseDto :
     def __init__(self,
         key = None,
         html = None,

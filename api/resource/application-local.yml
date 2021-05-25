@@ -4,7 +4,6 @@ api:
     server:
         scheme: http
         port: 5100
-        host: localhost
     security:
         secret: ${SECURITY_KEY:local-secret-key}
     database:
@@ -15,7 +14,7 @@ api:
 whats-app:
     web:
         authentication:
-            screenshot-renew-time: 5
+            time-out-in-seconds: 60
 
 swagger:
-    host: ${api.server.host}:${api.server.port}
+    host: localhost:${api.server.port}

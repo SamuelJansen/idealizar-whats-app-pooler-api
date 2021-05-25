@@ -25,16 +25,18 @@ whats-app:
     web:
         base-url: "https://web.whatsapp.com/"
         authentication:
-            time-out: ${WHATS_APP_WEB_AUTHENTICATION_TIME_OUT:180}
-            pre-delay: 1
-            screenshot-time-renew: 15
+            pre-delay-in-seconds: 1
+            time-out-in-seconds: 180
+            screenshot-time-renew-in-seconds: 15
+        tab-alternating-time-in-seconds: 5
+        ping-time-in-minutes: 20
         browser:
-            hidden: True
+            hidden: False
     manager:
         base-url: 'http://192.168.25.3:5500/idealizar-whats-app-manager-api'
 
 swagger:
-    host: ${api.server.host}:${api.server.port}${api.server.base-url}
+    host: ${api.server.host}:${api.server.port}
     schemes: [${api.server.scheme}]
     info:
         title: {api.name}

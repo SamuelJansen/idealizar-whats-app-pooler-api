@@ -1,15 +1,17 @@
-from converter.static import ContactStaticConverter, MessageStaticConverter
+from converter.static import ContactConverterStatic, ScanConverterStatic, MessageConverterStatic
 
 class ScanRequestDto :
     def __init__(self,
         contact = None,
-        lastMessageKey = None
+        lastMessageKey = None,
+        maxScanIterations = None
     ) :
-        self.contact = ContactStaticConverter.convertToContactDto(contact)
+        self.contact = ContactConverterStatic.toRequestDto(contact)
         self.lastMessageKey = lastMessageKey
+        self.maxScanIterations = ScanConverterStatic.getMaxScanIterations(maxScanIterations)
 
 class ScanResponseDto :
     def __init__(self,
-        messageList = None
+        messageScanList = None
     ) :
-        self.messageList = messageList
+        self.messageScanList = MessageConverterStatic.toReadResponseDtoList(messageScanList)

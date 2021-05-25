@@ -1,9 +1,9 @@
-from python_framework import Serializer, StaticConverter
+from python_framework import Serializer, ConverterStatic
 
 from domain import ContactConstants
 from dto import ContactDto
 
-def convertToContactDto(value) :
+def toRequestDto(value) :
     if isinstance(value, ContactDto.ContactRequestDto) :
         return value
     else :
@@ -18,4 +18,4 @@ def convertToContactDto(value) :
         return returnValue
 
 def getAccessTime(value) :
-    return StaticConverter.getValueOrDefault(value, ContactConstants.DEFAULT_ACCESS_TIME)
+    return ConverterStatic.getValueOrDefault(value, ContactConstants.DEFAULT_ACCESS_TIME)

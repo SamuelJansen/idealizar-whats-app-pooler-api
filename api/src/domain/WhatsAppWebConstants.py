@@ -11,7 +11,7 @@ XPATH_MESSAGE_LIST = '//div[contains(@class,"focusable-list-item")]'
 XPATH_MESSAGE_IN_LIST = '//div[contains(@class,"message-in focusable-list-item")]'
 XPATH_MESSAGE_OUT_LIST = '//div[contains(@class,"message-out focusable-list-item")]'
 XPATH_TEXT_BOX = '//div//div//div[@contenteditable="true"]'
-XPATH_SEND_IMAGE = '//div//div//span[@data-icon="send"]'
+XPATH_SEND = '//div//div//span[@data-icon="send"]'
 XPATH_GROUP = f'//div//div//span[@title="{ContactConstants.TOKEN_CONTACT_KEY}"]'
 XPATH_USER = f'//div//div//span//span[@title="{ContactConstants.TOKEN_CONTACT_KEY}"]'
 

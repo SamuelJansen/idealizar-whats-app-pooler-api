@@ -19,6 +19,14 @@ class BrowserService:
         self.client.browser.accessUrl(url, self.browser)
 
     @ServiceMethod(requestClass=[str])
+    def accessUrlInNewTab(self, url) :
+        self.client.browser.accessUrlInNewTab(url, self.browser)
+
+    @ServiceMethod(requestClass=[int])
+    def closeTab(self, tabIndex) :
+        self.client.browser.closeTab(tabIndex, self.browser)
+
+    @ServiceMethod(requestClass=[str])
     def accessByXPath(self, xPath) :
         return self.client.browser.accessByXPath(xPath, self.browser)
 
@@ -37,6 +45,10 @@ class BrowserService:
     @ServiceMethod(requestClass=[str])
     def existsByXpath(self, xpath) :
         return self.client.browser.existsByXpath(xpath, self.browser)
+
+    @ServiceMethod(requestClass=[str])
+    def typeInAndHitEnter(self, text, element=None) :
+        self.client.browser.typeInAndHitEnter(text, self.browser, element=element)
 
     @ServiceMethod(requestClass=[str])
     def pasteToBrowser(self, screenshotName, element=None):
@@ -68,11 +80,16 @@ class BrowserService:
         return self.client.browser.getAttribute(attributeName, self.browser, element=element)
 
     @ServiceMethod()
+    def optimizeHiddenWindowSize(self, maxSize=False) :
+        self.client.browser.optimizeHiddenWindowSize(self.browser, maxSize=maxSize)
+        log.debug(self.optimizeHiddenWindowSize, f'windowSize: {self.browser.windowSize}, originalWindowSize: {self.browser.originalWindowSize}')
+
+    @ServiceMethod()
     def isBooting(self) :
         return self.booting
 
     @ServiceMethod()
-    def isBooted() :
+    def isBooted(self) :
         return self.booted
 
     @ServiceMethod()
@@ -122,7 +139,7 @@ class BrowserService:
         return not self.isBooting()
 
     @ServiceMethod()
-    def isNotBooted() :
+    def isNotBooted(self) :
         return not self.isBooted()
 
     # @ServiceMethod(requestClass=[int])

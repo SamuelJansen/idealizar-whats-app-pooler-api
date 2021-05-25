@@ -1,6 +1,6 @@
 from python_helper import ObjectHelper, StringHelper
 from python_framework import SqlAlchemyProxy as sap
-from python_framework import StaticConverter
+from python_framework import ConverterStatic
 from ModelAssociation import SESSION, MODEL
 
 import DateTimeUtil
@@ -27,7 +27,7 @@ class Session(MODEL):
         commandExecutor = None
     ):
         self.id = id
-        self.updatedAt = StaticConverter.getValueOrDefault(DateTimeUtil.forcedlyGetDateTime(updatedAt), DateTimeUtil.dateTimeNow())
+        self.updatedAt = ConverterStatic.getValueOrDefault(DateTimeUtil.forcedlyGetDateTime(updatedAt), DateTimeUtil.dateTimeNow())
         self.sessionId = sessionId
         self.commandExecutor = commandExecutor
 
