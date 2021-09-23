@@ -142,6 +142,10 @@ class BrowserService:
     def isNotBooted(self) :
         return not self.isBooted()
 
+    @ServiceMethod()
+    def minimize(self) :
+        self.client.browser.minimize(self.browser)
+
     # @ServiceMethod(requestClass=[int])
     # def setZoom(self, zoomPercentage) :
     #     return self.client.browser.setZoom(zoomPercentage, self.browser)

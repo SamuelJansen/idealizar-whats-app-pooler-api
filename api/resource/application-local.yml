@@ -14,7 +14,7 @@ api:
 whats-app:
     web:
         authentication:
-            time-out-in-seconds: 60
+            time-out-in-seconds: 120
 
 swagger:
     host: localhost:${api.server.port}

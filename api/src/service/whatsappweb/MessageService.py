@@ -1,10 +1,29 @@
-from python_helper import log, ObjectHelper
+from python_helper import log, ObjectHelper, DateTimeHelper
 from python_framework import Service, ServiceMethod
 
 from dto import MessageScanDto, MessageWriteDto, ContactDto
 
+MAX_CURRENT_SCANNING_MESSAGE_DICTIONARY_TIME = 5
+
 @Service()
 class MessageService:
+
+    currentScanningMessageDictionary = {}
+
+    @ServiceMethod(requestClass=[str])
+    def addToCurrentScanningMessageDictionary(self, key) :
+        self.currentScanningMessageDictionary[key] : DateTimeHelper.dateTimeNow()
+
+    @ServiceMethod(requestClass=[str])
+    def notInCurrentScanningMessageDictionary(self, key) :
+        return key not in self.currentScanningMessageDictionary
+
+    @ServiceMethod()
+    def cleanCurrentScanningMessageDictionary(self) :
+        now = DateTimeHelper.dateTimeNow()
+        for k, v in {**self.currentScanningMessageDictionary}.items() :
+            if int((now - v).minutes) > MAX_CURRENT_SCANNING_MESSAGE_DICTIONARY_TIME :
+                self.currentScanningMessageDictionary.pop(k)
 
     @ServiceMethod(requestClass=[ContactDto.ContactRequestDto, str, int, dict])
     def scanAllAndReturnIsLastMessage(self, contactRequestDto, lastMessageKey, iteration, messageResponseDtoDictionary) :
@@ -18,6 +37,7 @@ class MessageService:
             if isLastMessage :
                 break
             elif self.isNewMessage(messageKey, messageResponseDtoDictionary) :
+                self.addToCurrentScanningMessageDictionary(messageKey)
                 messageResponseDtoDictionary[messageKey] = self.converter.message.toReadResponseDto(
                     messageKey,
                     self.getMessageHtml(errorList, rawMessage=rawMessage, muteLogs=True),
@@ -72,7 +92,7 @@ class MessageService:
 
     @ServiceMethod(requestClass=[str, dict])
     def isNewMessage(self, messageKey, messageResponseDtoDictionary) :
-        return ObjectHelper.isNotNone(messageKey) and messageKey not in messageResponseDtoDictionary
+        return ObjectHelper.isNotNone(messageKey) and messageKey not in messageResponseDtoDictionary and self.notInCurrentScanningMessageDictionary(messageKey)
 
     @ServiceMethod(requestClass=[str, str])
     def isLastScannedMessage(self, messageKey, lastMessageKey) :

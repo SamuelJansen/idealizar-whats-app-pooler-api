@@ -1,5 +1,5 @@
 import time
-from python_helper import log, ObjectHelper
+from python_helper import log, ObjectHelper, ReflectionHelper
 from python_framework import Service, ServiceMethod
 
 from util import KeyboardUtil
@@ -18,8 +18,13 @@ class WhatsAppWebService:
     @ServiceMethod(requestClass=[ContactDto.ContactRequestDto])
     def accessContact(self, contact) :
         contactConversationXPath = self.helper.whatsApp.getContactConversationXPath(contact)
-        self.service.browser.accessByXPath(contactConversationXPath)
-        time.sleep(contact.accessTime)
+        try:
+            self.service.browser.accessByXPath(contactConversationXPath)
+            time.sleep(contact.accessTime)
+        except Exception as exception:
+            errorMessage = f'Not possible to acces contact: {contactConversationXPath}'
+            log.failure(self.accessContact, errorMessage, exception)
+            raise Exception(errorMessage)
 
     @ServiceMethod(requestClass=[ContactDto.ContactRequestDto])
     def getInputTextBox(self, contact) :
@@ -165,6 +170,7 @@ class WhatsAppWebService:
             self.service.browser.accessUrlInNewTab(WhatsAppWebConfig.BASE_URL)
             self.service.browser.closeTab(-2)
             time.sleep(WhatsAppWebConfig.TAB_ALTERNATINGT_TIME_IN_SECONDS)
+            self.service.browser.minimize()
         except Exception as exception :
             log.failure(self.switchWhastAppToANewTab, 'Not possible to switch whats app tab properly', exception)
 

@@ -31,9 +31,12 @@ whats-app:
         tab-alternating-time-in-seconds: 5
         ping-time-in-minutes: 20
         browser:
-            hidden: False
+            hidden: True
+        message:
+            current-scanning-message-time: 5
     manager:
         base-url: 'http://192.168.25.3:5500/idealizar-whats-app-manager-api'
+
 
 swagger:
     host: ${api.server.host}:${api.server.port}

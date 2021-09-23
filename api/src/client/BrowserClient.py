@@ -25,14 +25,28 @@ class BrowserClient:
     @SimpleClientMethod()
     def getBrowserOptions(self, anonymous=False, deteach=True, hidden=False) :
         chromeOptions = BrowserConstants.BROWSER_OPTIONS_CLASS()
+
+        # chromeOptions.add_argument('--ignore-certificate-errors')
+        # chromeOptions.add_argument(f'user-agent={USER_AGENT}')
+        # chromeOptions.add_argument('--disable-blink-features=AutomationControlled')
+        # chromeOptions.add_experimental_option("excludeSwitches", ["enable-automation"])
+        # chromeOptions.add_experimental_option('useAutomationExtension', False)
+        # chromeOptions.add_argument('--disable-extensions')
+        # chromeOptions.add_argument('--disable-gpu')
+        # chromeOptions.add_argument('--disable-dev-shm-usage')
+        # chromeOptions.add_argument('--no-sandbox')
+        # chromeOptions.add_argument("headless")
+        # chromeOptions.add_argument('--incognito')
+        # chromeOptions.add_experimental_option('detach', True)
+
         chromeOptions.add_argument('--ignore-certificate-errors')
-        # chromeOptions.add_argument("user-agent=Chrome/83.0.4103.53")
         chromeOptions.add_argument(f'user-agent={USER_AGENT}')
         chromeOptions.add_argument('--disable-blink-features=AutomationControlled')
         chromeOptions.add_experimental_option("excludeSwitches", ["enable-automation"])
         chromeOptions.add_experimental_option('useAutomationExtension', False)
+        # chromeOptions.add_argument('--disable-software-rasterizer')
         chromeOptions.add_argument('--disable-extensions')
-        chromeOptions.add_argument('--disable-gpu')
+        # chromeOptions.add_argument('--disable-gpu')
         chromeOptions.add_argument('--disable-dev-shm-usage')
         chromeOptions.add_argument('--no-sandbox')
         if hidden :
@@ -110,11 +124,11 @@ class BrowserClient:
         # def inChunks(text, n) :
         #     for chunk in range() :
         #         yield
-        try :
+        if ObjectHelper.isNone(browser.hidden) or not browser.hidden :
             element.send_keys(Keys.CONTROL, 'a')
             pyperclip.copy(text)
             self.hitControlV(browser, element=element)
-        except Exception as exception :
+        else :
             element.send_keys(Keys.CONTROL, 'a')
             newLine = False
             for t in text.split(c.NEW_LINE) :
